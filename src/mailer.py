@@ -61,7 +61,7 @@ def _sources_html(results: list[dict]) -> str:
     return "\n".join(parts)
 
 
-def send(html_content: str, companies: list[str], results: list[dict] | None = None) -> None:
+def send(html_content: str, companies: list[str], results: list[dict] | None = None, recipient_email: str | None = None) -> None:
     resend.api_key = os.environ["RESEND_API_KEY"]
 
     subject_companies = ", ".join(companies)
@@ -105,7 +105,7 @@ def send(html_content: str, companies: list[str], results: list[dict] | None = N
 
     params: resend.Emails.SendParams = {
         "from": "onboarding@resend.dev",
-        "to": [config.TO_EMAIL],
+        "to": [recipient_email or config.TO_EMAIL],
         "subject": f"Competitor Digest: {subject_companies} — {subject_date}",
         "html": html,
     }

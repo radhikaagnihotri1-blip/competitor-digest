@@ -22,6 +22,7 @@ class EmailRequest(BaseModel):
     html: str
     companies: list[str]
     sources_by_company: list[dict]
+    recipient_email: str | None = None
 
 
 class ClassifyRequest(BaseModel):
@@ -82,7 +83,7 @@ async def classify_endpoint(req: ClassifyRequest):
 
 @app.post("/email")
 async def email_endpoint(req: EmailRequest):
-    await asyncio.to_thread(mailer.send, req.html, req.companies, req.sources_by_company)
+    await asyncio.to_thread(mailer.send, req.html, req.companies, req.sources_by_company, req.recipient_email)
     return {"ok": True}
 
 
