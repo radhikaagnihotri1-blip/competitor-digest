@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Competitor Digest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2/dist/chartjs-plugin-datalabels.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #faf8f5;
+      --surface:      rgba(255, 255, 255, 0.85);
+      --surface-2:    rgba(255, 255, 255, 0.60);
+      --border:       rgba(0, 0, 0, 0.09);
+      --border-2:     rgba(0, 0, 0, 0.14);
+      --accent:       #800020;
+      --accent-dim:   rgba(128, 0, 32, 0.08);
+      --border-focus: rgba(128, 0, 32, 0.3);
+      --green:        #16a34a;
+      --green-dim:    rgba(22, 163, 74, 0.12);
+      --red:          #dc2626;
+      --text:         #1a1a2e;
+      --text-2:       #334155;
+      --muted:        #64748b;
+      --muted-2:      #94a3b8;
+      --font:         'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono:         'SF Mono', 'Fira Code', 'Roboto Mono', monospace;
+      --shadow-sm:    0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md:    0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-lg:    0 12px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+      --glass:        rgba(255,255,255,0.82);
+      --glass-border: rgba(255,255,255,0.92);
+      /* robot */
+      --robot-head:     #94a3b8;
+      --robot-body:     #64748b;
+      --robot-dark:     #475569;
+      --robot-eye-off:  #334155;
+      --robot-eye-on:   #800020;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text);
+      background: linear-gradient(160deg, #f0ebe3 0%, #f5f0eb 30%, #faf8f5 65%, #ffffff 100%);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Global progress bar ───────────────────────────────── */
+    #progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 3px;
+      z-index: 1000;
+      overflow: hidden;
+    }
+    #progress-bar.running::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, #800020, #c41e3a, #800020, transparent);
+      background-size: 300% 100%;
+      animation: progress-sweep 1.8s linear infinite;
+    }
+    @keyframes progress-sweep {
+      0%   { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+
+    /* ─── Hero ──────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      padding: 80px 24px 24px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero-inner {
+      position: relative;
+    }
+    .hero h1 {
+      font-size: clamp(46px, 7.5vw, 78px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.0;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #4a0010 55%, #800020 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.65;
+    }
+
+    /* ─── Layout ────────────────────────────────────────────── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 100px;
+    }
+
+    /* ─── Glass utility ─────────────────────────────────────── */
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ─── Input Section ─────────────────────────────────────── */
+    .input-section {
+      border-radius: 20px;
+      padding: 28px 28px 24px;
+      margin-top: 0;
+      position: relative; z-index: 2;
+    }
+    .input-row {
+      display: flex; gap: 10px; margin-bottom: 20px;
+    }
+    .company-input {
+      flex: 1;
+      background: rgba(255,255,255,0.6);
+      border: 1px solid var(--border-2);
+      border-radius: 12px;
+      padding: 13px 18px;
+      color: var(--text);
+      font-family: var(--font); font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .company-input::placeholder { color: var(--muted-2); }
+    .company-input:focus {
+      background: rgba(255,255,255,0.95);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--border-focus);
+    }
+    .run-btn, .stop-btn {
+      padding: 13px 26px;
+      border-radius: 12px;
+      font-family: var(--font); font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .run-btn {
+      background: #800020;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(128,0,32,0.35);
+    }
+    .run-btn:hover:not(:disabled) {
+      background: #6b001b;
+      box-shadow: 0 6px 24px rgba(128,0,32,0.5);
+      transform: translateY(-1px);
+    }
+    .run-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+    .stop-btn {
+      background: transparent;
+      color: #800020;
+      border: 1px solid rgba(128,0,32,0.35);
+    }
+    .stop-btn:hover { background: rgba(128,0,32,0.06); }
+    .hidden { display: none !important; }
+
+    .presets-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 10px;
+    }
+    .preset-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; }
+    .preset-chip {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--border-2);
+      border-radius: 100px;
+      color: var(--muted);
+      font-family: var(--font); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .preset-chip:hover { border-color: #800020; color: #800020; background: rgba(128,0,32,0.05); }
+    .preset-chip.selected { background: #800020; border-color: #800020; color: #fff; }
+
+    .selected-tags { display: flex; flex-wrap: wrap; gap: 7px; min-height: 0; }
+    .selected-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px 5px 14px;
+      background: #800020;
+      border: 1px solid #800020;
+      border-radius: 100px;
+      color: #fff; font-size: 13px; font-weight: 500;
+    }
+    .selected-tag button {
+      background: none; border: none;
+      color: rgba(255,255,255,0.75); cursor: pointer;
+      padding: 0; font-size: 16px; line-height: 1;
+      opacity: 0.8; transition: opacity 0.1s;
+    }
+    .selected-tag button:hover { opacity: 1; }
+
+    /* ─── Agent Panel ───────────────────────────────────────── */
+    .agent-panel { margin-top: 32px; }
+    .agent-panel-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+    }
+    .agent-panel-title {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: #800020;
+    }
+    .live-badge {
+      display: none; align-items: center; gap: 5px;
+      padding: 2px 9px;
+      background: rgba(128,0,32,0.07);
+      border: 1px solid rgba(128,0,32,0.2);
+      border-radius: 100px;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: #800020;
+    }
+    .live-badge.active { display: inline-flex; }
+    .live-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--red);
+      animation: live-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes live-pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
+      50%       { opacity: 0.7; box-shadow: 0 0 0 4px rgba(220,38,38,0); }
+    }
+
+    .agent-grid-wrapper { position: relative; }
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .lines-overlay {
+      position: absolute; inset: 0;
+      pointer-events: none; overflow: visible; z-index: 0;
+    }
+
+    /* ─── Agent cards ───────────────────────────────────────── */
+    .agent-card {
+      position: relative; z-index: 1;
+      border-radius: 18px;
+      padding: 22px 20px 18px;
+      animation: card-enter 0.45s cubic-bezier(0.16,1,0.3,1) both;
+      transition: border-color 0.35s, box-shadow 0.35s, background 0.35s;
+      --company-color: var(--accent);
+    }
+    @keyframes card-enter {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .agent-card[data-status="queued"] {
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: var(--shadow-sm);
+      opacity: 0.75;
+    }
+    .agent-card[data-status="queued"]::after {
+      content: '';
+      position: absolute; inset: 0; border-radius: 18px;
+      background: linear-gradient(100deg, transparent 25%, rgba(128,0,32,0.04) 50%, transparent 75%);
+      background-size: 200% 100%;
+      animation: shimmer 2.2s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .agent-card[data-status="active"] {
+      background: rgba(255,255,255,0.92);
+      border: 1.5px solid #800020;
+      box-shadow: 0 0 0 3px rgba(128,0,32,0.08), var(--shadow-md);
+      opacity: 1;
+      animation: card-enter 0.45s cubic-bezier(0.16,1,0.3,1) both,
+                 card-pulse 2.8s ease-in-out infinite;
+    }
+    @keyframes card-pulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(128,0,32,0.08), var(--shadow-md); }
+      50%       { box-shadow: 0 0 0 5px rgba(128,0,32,0.14), 0 8px 32px rgba(128,0,32,0.10); }
+    }
+    .agent-card[data-status="done"] {
+      background: rgba(255,255,255,0.92);
+      border: 1.5px solid var(--company-color);
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.04),
+                  0 4px 24px rgba(0,0,0,0.07);
+      opacity: 1;
+    }
+    .agent-card[data-status="error"] {
+      background: rgba(255,255,255,0.85);
+      border: 1.5px solid var(--red);
+      box-shadow: 0 0 0 3px rgba(220,38,38,0.08);
+    }
+
+    /* Card internals */
+    .card-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 10px;
+    }
+    .card-company {
+      font-size: 15px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.01em;
+      line-height: 1.2;
+      padding-top: 6px;
+    }
+    .card-status-row {
+      display: flex; align-items: center; gap: 7px;
+      min-height: 16px;
+    }
+    .card-status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      flex-shrink: 0; background: var(--muted-2);
+      transition: background 0.3s;
+    }
+    .agent-card[data-status="active"] .card-status-dot { background: var(--accent); }
+    .agent-card[data-status="done"]   .card-status-dot { background: var(--green); }
+    .agent-card[data-status="error"]  .card-status-dot { background: var(--red); }
+    .card-status {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--muted-2); line-height: 1.4;
+      transition: color 0.25s;
+    }
+    .agent-card[data-status="active"] .card-status { color: var(--accent); }
+    .agent-card[data-status="done"]   .card-status { color: var(--green); }
+    .agent-card[data-status="error"]  .card-status { color: var(--red); }
+    .agent-card[data-status="queued"] .card-status { color: var(--muted-2); }
+
+    /* ─── Pixel-art robot ───────────────────────────────────── */
+    .robot-svg { flex-shrink: 0; display: block; }
+
+    .agent-card[data-status="queued"]  .pose-active,
+    .agent-card[data-status="queued"]  .pose-done   { display: none; }
+    .agent-card[data-status="active"]  .pose-idle,
+    .agent-card[data-status="active"]  .pose-done   { display: none; }
+    .agent-card[data-status="done"]    .pose-idle,
+    .agent-card[data-status="done"]    .pose-active { display: none; }
+    .agent-card[data-status="error"]   .pose-active,
+    .agent-card[data-status="error"]   .pose-done   { display: none; }
+
+    .agent-card[data-status="queued"] .robot-svg {
+      animation: robot-breathe 3.5s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+    @keyframes robot-breathe {
+      0%, 100% { transform: scaleY(1) translateY(0); }
+      50%       { transform: scaleY(1.04) translateY(-1px); }
+    }
+
+    .agent-card[data-status="active"] .robot-svg {
+      animation: robot-type 0.12s steps(2, end) infinite;
+    }
+    @keyframes robot-type {
+      0%   { transform: translateX(0) rotate(0deg); }
+      33%  { transform: translateX(1px) rotate(0.5deg); }
+      66%  { transform: translateX(-1px) rotate(-0.5deg); }
+      100% { transform: translateX(0) rotate(0deg); }
+    }
+
+    .agent-card[data-status="done"] .robot-svg {
+      filter: drop-shadow(0 0 5px var(--company-color))
+              drop-shadow(0 0 10px color-mix(in srgb, var(--company-color) 40%, transparent));
+    }
+
+    .agent-card[data-status="done"] .robot-done-eye {
+      fill: var(--company-color);
+    }
+    .agent-card[data-status="active"] .robot-eye-glow {
+      opacity: 1;
+      animation: eye-flicker 0.4s ease-in-out infinite alternate;
+    }
+    @keyframes eye-flicker {
+      0%   { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    .agent-card[data-status="done"] .robot-wave-arm {
+      transform-origin: 30px 18px;
+      animation: robot-wave 1s ease-in-out infinite;
+    }
+    @keyframes robot-wave {
+      0%, 100% { transform: rotate(0deg); }
+      40%       { transform: rotate(-22deg); }
+      70%       { transform: rotate(8deg); }
+    }
+
+    /* ─── Synthesis indicator ────────────────────────────────── */
+    .synthesis-indicator {
+      margin-top: 18px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 13px; color: #800020;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .synthesis-indicator .spinner {
+      width: 15px; height: 15px;
+      border: 2px solid rgba(128,0,32,0.15);
+      border-top-color: #800020;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Charts Section (appears first) ───────────────────── */
+    .charts-section { margin-top: 32px; }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Ken editorial chart cards */
+    .chart-card {
+      border-radius: 12px;
+      padding: 28px 28px 16px;
+      background: #faf8f5;
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .chart-card-wide { grid-column: 1 / -1; }
+    .chart-card canvas { width: 100% !important; }
+
+    .chart-header { margin-bottom: 18px; }
+    .chart-title {
+      font-size: 18px; font-weight: 700;
+      color: #800020;
+      letter-spacing: -0.02em;
+      margin-bottom: 3px;
+    }
+    .chart-subtitle {
+      font-size: 13px; color: #64748b;
+      margin: 0;
+    }
+    .chart-attribution {
+      font-size: 11px; color: #94a3b8;
+      text-align: right; margin-top: 10px; margin-bottom: 0;
+    }
+    .chart-empty {
+      font-size: 13px; color: var(--muted-2);
+      text-align: center; padding: 20px 0;
+    }
+
+    /* ─── Digest Section ────────────────────────────────────── */
+    .digest-section { margin-top: 40px; }
+    .section-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .section-label {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: #800020;
+    }
+    .digest-actions { display: flex; gap: 8px; }
+    .action-btn {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--border-2);
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: var(--font); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .digest-card { border-radius: 20px; overflow: hidden; }
+
+    /* Comparison card layout */
+    .digest-content { padding: 0; }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+    }
+    .company-compare-col {
+      padding: 24px 24px 20px;
+      border-right: 1px solid rgba(0,0,0,0.06);
+    }
+    .company-compare-col:last-child { border-right: none; }
+
+    .compare-company-header {
+      display: flex; align-items: center; gap: 8px;
+      padding-left: 10px;
+      border-left: 3px solid transparent;
+      margin-bottom: 16px;
+    }
+    .compare-company-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .compare-company-name {
+      font-size: 15px; font-weight: 700; color: var(--text);
+    }
+    .compare-company-url {
+      display: block; font-size: 12px; color: #64748b;
+      text-decoration: none; margin-top: 2px;
+    }
+    .compare-company-url:hover { text-decoration: underline; }
+    .compare-section { margin-bottom: 14px; }
+    .compare-section-title {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: #800020; margin-bottom: 6px;
+    }
+    .compare-bullets {
+      list-style: none; padding: 0; margin: 0;
+    }
+    .compare-bullets li {
+      font-size: 13px; line-height: 1.65; color: var(--text-2);
+      padding: 3px 0 3px 12px;
+      border-left: 2px solid rgba(0,0,0,0.06);
+      margin-bottom: 4px;
+    }
+    .compare-empty {
+      font-size: 12px; color: var(--muted-2); font-style: italic; margin: 0;
+    }
+
+    /* ─── Stat pills ─────────────────────────────────────────── */
+    .compare-stat-pills {
+      display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px;
+    }
+    .stat-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      background: rgba(128,0,32,0.06);
+      border: 1px solid rgba(128,0,32,0.15);
+      border-radius: 100px;
+      font-size: 11px; font-weight: 500;
+      color: #800020;
+    }
+
+    /* ─── Sources (standalone glass card) ───────────────────── */
+    .sources-section {
+      margin-top: 20px;
+      border-radius: 16px;
+      padding: 20px 28px 24px;
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.9);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .sources-section h3 {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted-2); margin-bottom: 14px;
+    }
+    .source-group { margin-bottom: 16px; }
+    .source-company-label {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--muted); margin-bottom: 7px;
+    }
+    .source-chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .source-chip {
+      display: inline-block; padding: 3px 11px;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid var(--border-2);
+      border-radius: 100px; font-size: 11px; color: var(--muted);
+      text-decoration: none; max-width: 280px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .source-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Error banner */
+    .error-banner {
+      margin-top: 18px; padding: 13px 16px;
+      background: rgba(220,38,38,0.06);
+      border: 1px solid rgba(220,38,38,0.2);
+      border-radius: 12px; font-size: 13px; color: var(--red);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="progress-bar"></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>Competitor Digest</h1>
+      <p>AI agents research your competitors in parallel and synthesize a strategic briefing.</p>
+    </div>
+  </section>
+
+  <div class="container">
+
+    <!-- Input -->
+    <section class="input-section glass">
+      <div class="input-row">
+        <input id="company-input" class="company-input" type="text"
+          placeholder="Type a company name and press Enter…"
+          autocomplete="off" autocorrect="off" spellcheck="false">
+        <button id="run-btn" class="run-btn" disabled>Run Digest</button>
+        <button id="stop-btn" class="stop-btn hidden">Stop</button>
+      </div>
+      <div class="presets-label">Quick add</div>
+      <div id="preset-chips" class="preset-chips"></div>
+      <div id="selected-tags" class="selected-tags"></div>
+    </section>
+
+    <!-- Agent panel -->
+    <section id="agent-panel" class="agent-panel hidden">
+      <div class="agent-panel-header">
+        <span class="agent-panel-title">Agent Activity</span>
+        <span id="live-badge" class="live-badge">
+          <span class="live-dot"></span>Live
+        </span>
+      </div>
+      <div class="agent-grid-wrapper">
+        <svg id="connecting-lines" class="lines-overlay"></svg>
+        <div id="agent-grid" class="agent-grid"></div>
+      </div>
+      <div id="synthesis-indicator" class="synthesis-indicator glass hidden">
+        <div class="spinner"></div>
+        <span>Synthesizing competitive intelligence…</span>
+      </div>
+      <div id="error-banner" class="error-banner hidden"></div>
+    </section>
+
+    <!-- Historical Intelligence (trends, funding) -->
+    <div id="history-section" class="charts-section hidden">
+      <div class="section-header" style="margin-bottom:18px">
+        <div class="section-label">Historical Intelligence</div>
+      </div>
+      <div class="charts-grid">
+        <div id="chart-card-trends" class="chart-card chart-card-wide">
+          <div class="chart-header">
+            <h3 class="chart-title">Search Interest Over Time</h3>
+            <p class="chart-subtitle">Google Trends interest score, 5-year view</p>
+          </div>
+          <canvas id="chart-trends"></canvas>
+          <p class="chart-attribution">Source: Google Trends</p>
+        </div>
+        <div id="chart-card-funding" class="chart-card hidden">
+          <div class="chart-header">
+            <h3 class="chart-title">Funding Trajectory</h3>
+            <p id="chart-funding-subtitle" class="chart-subtitle">Cumulative venture funding raised over time</p>
+          </div>
+          <canvas id="chart-funding"></canvas>
+          <p class="chart-attribution">Source: Web search</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts (first) -->
+    <div id="charts-section" class="charts-section hidden">
+      <div class="section-header" style="margin-bottom:18px">
+        <div class="section-label">Competitive Analysis</div>
+      </div>
+      <div class="charts-grid">
+        <div id="chart-card-pricing" class="chart-card">
+          <div class="chart-header">
+            <h3 class="chart-title">Pricing Tiers</h3>
+            <p class="chart-subtitle">Monthly rate by tier across companies</p>
+          </div>
+          <canvas id="chart-pricing"></canvas>
+          <p class="chart-attribution">Source: Competitor Digest AI</p>
+        </div>
+        <div id="chart-card-radar" class="chart-card">
+          <div class="chart-header">
+            <h3 class="chart-title">Positioning Radar</h3>
+            <p class="chart-subtitle">Competitive positioning on four strategic dimensions</p>
+          </div>
+          <canvas id="chart-radar"></canvas>
+          <p class="chart-attribution">Source: Competitor Digest AI</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Digest (comparison bullets) -->
+    <section id="digest-section" class="digest-section hidden">
+      <div class="section-header">
+        <div class="section-label">Company Comparison</div>
+        <div class="digest-actions">
+          <button class="action-btn" id="copy-btn">Copy</button>
+          <button class="action-btn" id="email-btn">Send Email</button>
+        </div>
+      </div>
+      <div class="digest-card glass">
+        <div id="digest-content" class="digest-content"></div>
+      </div>
+    </section>
+
+    <!-- Sources (standalone) -->
+    <div id="sources-section" class="sources-section hidden"></div>
+
+  </div><!-- /container -->
+
+  <script>
+    // ─── Brand colours ──────────────────────────────────────────
+    const BRAND_URLS = {
+      'Notion':    'https://www.notion.com',
+      'Linear':    'https://linear.app',
+      'Figma':     'https://www.figma.com',
+      'Stripe':    'https://stripe.com',
+      'Slack':     'https://slack.com',
+      'Miro':      'https://miro.com',
+      'Canva':     'https://www.canva.com',
+      'Airtable':  'https://www.airtable.com',
+      'Webflow':   'https://webflow.com',
+      'Loom':      'https://www.loom.com',
+    };
+    function companyUrl(name) {
+      return BRAND_URLS[name] || `https://www.${name.toLowerCase()}.com`;
+    }
+
+    const BRAND_COLORS = {
+      'Notion':    '#000000', 'Linear':    '#5E6AD2',
+      'Figma':     '#F24E1E', 'Stripe':    '#635BFF',
+      'Slack':     '#E01E5A', 'Miro':      '#E6A817',
+      'Canva':     '#00A3A9', 'Airtable':  '#2D7FF9',
+      'Webflow':   '#146EF5', 'Loom':      '#625DF5',
+      'Braintree': '#009CDE', 'Teams':     '#6264A7',
+      'Mural':     '#FF4F00',
+    };
+    const FALLBACK_PALETTE = [
+      '#3b82f6','#8b5cf6','#06b6d4','#f59e0b','#10b981','#ef4444','#ec4899','#84cc16',
+    ];
+    function companyColor(name) {
+      if (BRAND_COLORS[name]) return BRAND_COLORS[name];
+      const hash = [...name].reduce((a,c) => a + c.charCodeAt(0), 0);
+      return FALLBACK_PALETTE[hash % FALLBACK_PALETTE.length];
+    }
+    function hexToRgba(hex, alpha) {
+      const r = parseInt(hex.slice(1,3), 16);
+      const g = parseInt(hex.slice(3,5), 16);
+      const b = parseInt(hex.slice(5,7), 16);
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    // ─── State ──────────────────────────────────────────────────
+    let selectedCompanies  = new Set();
+    let agentStates        = new Map();
+    let abortController    = null;
+    let digestHtml         = '';
+    let chartInstances     = {};
+    const statusCycleTimers = new Map();
+
+    const PRESETS = [
+      'Notion','Linear','Figma','Stripe','Slack',
+      'Miro','Canva','Airtable','Webflow','Loom',
+    ];
+    const CYCLING_MESSAGES = [
+      'Scanning pricing pages...',
+      'Checking product updates...',
+      'Analysing news coverage...',
+      'Reading recent announcements...',
+      'Gathering competitive intel...',
+      'Reviewing press releases...',
+      'Cross-referencing sources...',
+    ];
+
+    // ─── Pixel-art robot SVG ────────────────────────────────────
+    function robotSVG(company) {
+      const cc = escapeAttr(companyColor(company));
+      return `<svg class="robot-svg" viewBox="0 0 32 36" width="52" height="58"
+          shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <g id="rb-${cardId(company)}">
+            <!-- Antenna -->
+            <rect x="13" y="1" width="6" height="5" fill="#94a3b8"/>
+            <rect x="14" y="0" width="4" height="3" fill="#60a5fa"/>
+            <!-- Head -->
+            <rect x="6" y="6" width="20" height="12" fill="#94a3b8"/>
+            <!-- Eye sockets -->
+            <rect x="9" y="9" width="5" height="4" fill="#1e293b"/>
+            <rect x="18" y="9" width="5" height="4" fill="#1e293b"/>
+            <!-- Mouth -->
+            <rect x="11" y="15" width="10" height="2" fill="#64748b"/>
+            <!-- Body -->
+            <rect x="4" y="18" width="24" height="11" fill="#64748b"/>
+            <!-- Chest panel -->
+            <rect x="10" y="20" width="12" height="6" fill="#475569"/>
+            <rect x="11" y="21" width="2" height="2" fill="#22d3ee"/>
+            <rect x="14" y="21" width="2" height="2" fill="#a78bfa"/>
+            <rect x="17" y="21" width="2" height="2" fill="#4ade80"/>
+            <!-- Legs -->
+            <rect x="7" y="29" width="7" height="7" fill="#64748b"/>
+            <rect x="18" y="29" width="7" height="7" fill="#64748b"/>
+            <rect x="6" y="35" width="9" height="1" fill="#94a3b8"/>
+            <rect x="17" y="35" width="9" height="1" fill="#94a3b8"/>
+          </g>
+        </defs>
+
+        <!-- IDLE: arms down, eyes dim -->
+        <g class="pose-idle">
+          <use href="#rb-${cardId(company)}"/>
+          <rect x="10" y="10" width="3" height="2" fill="#475569"/>
+          <rect x="19" y="10" width="3" height="2" fill="#475569"/>
+          <rect x="0" y="18" width="4" height="9" fill="#64748b"/>
+          <rect x="28" y="18" width="4" height="9" fill="#64748b"/>
+          <rect x="0" y="26" width="4" height="2" fill="#94a3b8"/>
+          <rect x="28" y="26" width="4" height="2" fill="#94a3b8"/>
+        </g>
+
+        <!-- ACTIVE: arms raised/typing, eyes lit -->
+        <g class="pose-active">
+          <use href="#rb-${cardId(company)}"/>
+          <rect class="robot-eye-glow" x="10" y="10" width="3" height="2" fill="#3b82f6"/>
+          <rect class="robot-eye-glow" x="19" y="10" width="3" height="2" fill="#3b82f6"/>
+          <rect x="0" y="14" width="7" height="4" fill="#64748b"/>
+          <rect x="25" y="14" width="7" height="4" fill="#64748b"/>
+          <rect x="0" y="17" width="7" height="2" fill="#94a3b8"/>
+          <rect x="25" y="17" width="7" height="2" fill="#94a3b8"/>
+        </g>
+
+        <!-- DONE: left arm down, right arm raised (wave) -->
+        <g class="pose-done">
+          <use href="#rb-${cardId(company)}"/>
+          <rect class="robot-done-eye" x="10" y="10" width="3" height="2" fill="${cc}"/>
+          <rect class="robot-done-eye" x="19" y="10" width="3" height="2" fill="${cc}"/>
+          <rect x="0" y="18" width="4" height="9" fill="#64748b"/>
+          <rect x="0" y="26" width="4" height="2" fill="#94a3b8"/>
+          <g class="robot-wave-arm">
+            <rect x="28" y="6" width="4" height="12" fill="#64748b"/>
+            <rect x="27" y="4" width="6" height="3" fill="#94a3b8"/>
+          </g>
+        </g>
+      </svg>`;
+    }
+
+    // ─── Init ────────────────────────────────────────────────────
+    function init() {
+      initPresets();
+      document.getElementById('company-input').addEventListener('keydown', onInputKeydown);
+      document.getElementById('run-btn').addEventListener('click', startRun);
+      document.getElementById('stop-btn').addEventListener('click', stopRun);
+      document.getElementById('copy-btn').addEventListener('click', copyDigest);
+      document.getElementById('email-btn').addEventListener('click', sendEmail);
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(drawLines, 150);
+      });
+    }
+
+    // ─── Presets ─────────────────────────────────────────────────
+    function initPresets() {
+      const container = document.getElementById('preset-chips');
+      PRESETS.forEach(name => {
+        const btn = document.createElement('button');
+        btn.className = 'preset-chip';
+        btn.textContent = name;
+        btn.dataset.company = name;
+        btn.addEventListener('click', () => toggleCompany(name));
+        container.appendChild(btn);
+      });
+    }
+
+    function toggleCompany(name) {
+      if (selectedCompanies.has(name)) selectedCompanies.delete(name);
+      else selectedCompanies.add(name);
+      syncPresetChip(name);
+      renderSelectedTags();
+    }
+
+    function syncPresetChip(name) {
+      const chip = document.querySelector(`.preset-chip[data-company="${CSS.escape(name)}"]`);
+      if (chip) chip.classList.toggle('selected', selectedCompanies.has(name));
+    }
+
+    function onInputKeydown(e) {
+      if (e.key !== 'Enter') return;
+      const name = e.target.value.trim();
+      if (!name) return;
+      if (!selectedCompanies.has(name)) { selectedCompanies.add(name); syncPresetChip(name); renderSelectedTags(); }
+      e.target.value = '';
+    }
+
+    function removeCompany(name) {
+      selectedCompanies.delete(name);
+      syncPresetChip(name);
+      renderSelectedTags();
+    }
+
+    function renderSelectedTags() {
+      const container = document.getElementById('selected-tags');
+      container.innerHTML = '';
+      for (const name of selectedCompanies) {
+        const tag = document.createElement('span');
+        tag.className = 'selected-tag';
+        tag.innerHTML = `${escapeHtml(name)}<button aria-label="Remove" onclick="removeCompany(${JSON.stringify(name)})">&times;</button>`;
+        container.appendChild(tag);
+      }
+      document.getElementById('run-btn').disabled = selectedCompanies.size === 0;
+    }
+
+    // ─── Run / Stop ──────────────────────────────────────────────
+    function startRun() {
+      if (selectedCompanies.size === 0) return;
+
+      agentStates.clear();
+      stopAllCyclers();
+      destroyCharts();
+      digestHtml = '';
+
+      document.getElementById('digest-section').classList.add('hidden');
+      document.getElementById('digest-content').innerHTML = '';
+      document.getElementById('sources-section').innerHTML = '';
+      document.getElementById('sources-section').classList.add('hidden');
+      document.getElementById('error-banner').classList.add('hidden');
+      document.getElementById('synthesis-indicator').classList.add('hidden');
+      document.getElementById('charts-section').classList.add('hidden');
+      document.getElementById('history-section').classList.add('hidden');
+      // Reset any dynamically-added full-width classes (#chart-card-trends is wide by default; others are not)
+      ['chart-card-funding', 'chart-card-pricing', 'chart-card-radar'].forEach(id => {
+        document.getElementById(id)?.classList.remove('chart-card-wide');
+      });
+
+      document.getElementById('agent-panel').classList.remove('hidden');
+      document.getElementById('live-badge').classList.add('active');
+      document.getElementById('progress-bar').classList.add('running');
+      renderAgentCards();
+
+      document.getElementById('run-btn').classList.add('hidden');
+      document.getElementById('stop-btn').classList.remove('hidden');
+
+      abortController = new AbortController();
+      fetch('/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companies: [...selectedCompanies] }),
+        signal: abortController.signal,
+      })
+        .then(res => { if (!res.ok) throw new Error(`Server error: ${res.status}`); return readSseStream(res.body); })
+        .catch(err => {
+          if (err.name !== 'AbortError') { showError(err.message || 'Connection failed'); resetRunState(); }
+        });
+    }
+
+    function stopRun() {
+      if (abortController) { abortController.abort(); abortController = null; }
+      resetRunState();
+    }
+
+    function resetRunState() {
+      stopAllCyclers();
+      document.getElementById('run-btn').classList.remove('hidden');
+      document.getElementById('stop-btn').classList.add('hidden');
+      document.getElementById('live-badge').classList.remove('active');
+      document.getElementById('progress-bar').classList.remove('running');
+    }
+
+    // ─── Cycler ──────────────────────────────────────────────────
+    function startCycler(company) {
+      let idx = 0;
+      const id = setInterval(() => {
+        idx = (idx + 1) % CYCLING_MESSAGES.length;
+        const card = document.getElementById(cardId(company));
+        if (card && card.dataset.status === 'active')
+          card.querySelector('.card-status').textContent = CYCLING_MESSAGES[idx];
+      }, 3000);
+      statusCycleTimers.set(company, id);
+    }
+    function stopCycler(company) {
+      const id = statusCycleTimers.get(company);
+      if (id) { clearInterval(id); statusCycleTimers.delete(company); }
+    }
+    function stopAllCyclers() {
+      for (const id of statusCycleTimers.values()) clearInterval(id);
+      statusCycleTimers.clear();
+    }
+
+    // ─── SSE stream reader ───────────────────────────────────────
+    async function readSseStream(body) {
+      const reader = body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        buffer = buffer.replace(/\r\n/g, '\n');
+        const blocks = buffer.split('\n\n');
+        buffer = blocks.pop();
+        for (const block of blocks) {
+          if (!block.trim()) continue;
+          let eventType = 'message', eventData = '';
+          for (const line of block.split('\n')) {
+            if (line.startsWith('event:'))     eventType = line.slice(6).trim();
+            else if (line.startsWith('data:')) eventData = line.slice(5).trim();
+          }
+          if (eventData) {
+            try { handleEvent(eventType, JSON.parse(eventData)); }
+            catch { /* skip malformed */ }
+          }
+        }
+      }
+    }
+
+    // ─── Event handling ──────────────────────────────────────────
+    function handleEvent(type, data) {
+      switch (type) {
+        case 'agent_queued':
+          agentStates.set(data.company, { status: 'queued', statusLine: 'Queued', summary: null, sources: [], structured: null });
+          break;
+        case 'agent_start':
+          updateCard(data.company, { status: 'active', statusLine: 'Starting...' });
+          startCycler(data.company);
+          drawLines();
+          break;
+        case 'agent_progress':
+          stopCycler(data.company);
+          updateCard(data.company, { statusLine: data.message });
+          startCycler(data.company);
+          break;
+        case 'agent_done':
+          stopCycler(data.company);
+          updateCard(data.company, {
+            status: 'done', statusLine: 'Complete',
+            summary: data.summary, sources: data.sources || [],
+            structured: data.structured || null,
+            classification: data.classification || null,
+            wikipedia: data.wikipedia || null,
+            trends: data.trends || null,
+            app_store: data.app_store || null,
+          });
+          drawLines();
+          break;
+        case 'synthesis_start':
+          document.getElementById('synthesis-indicator').classList.remove('hidden');
+          break;
+        case 'synthesis_done':
+          document.getElementById('synthesis-indicator').classList.add('hidden');
+          revealDigest(data.html);
+          break;
+        case 'complete':
+          resetRunState();
+          break;
+        case 'error':
+          document.getElementById('synthesis-indicator').classList.add('hidden');
+          showError(data.message);
+          resetRunState();
+          break;
+      }
+    }
+
+    // ─── Card management ─────────────────────────────────────────
+    function renderAgentCards() {
+      const grid = document.getElementById('agent-grid');
+      grid.innerHTML = '';
+      [...selectedCompanies].forEach((company, i) => {
+        const card = document.createElement('div');
+        card.className = 'agent-card glass';
+        card.id = cardId(company);
+        card.dataset.status = 'queued';
+        card.style.animationDelay = `${i * 110}ms`;
+        card.innerHTML = `
+          <div class="card-top">
+            <div class="card-company">${escapeHtml(company)}</div>
+            ${robotSVG(company)}
+          </div>
+          <div class="card-status-row">
+            <div class="card-status-dot"></div>
+            <div class="card-status">Queued</div>
+          </div>`;
+        grid.appendChild(card);
+      });
+      requestAnimationFrame(drawLines);
+    }
+
+    function cardId(company) {
+      return 'card-' + btoa(unescape(encodeURIComponent(company))).replace(/[+=\/]/g, '_');
+    }
+
+    function updateCard(company, patch) {
+      const state = agentStates.get(company) || {};
+      Object.assign(state, patch);
+      agentStates.set(company, state);
+      const card = document.getElementById(cardId(company));
+      if (!card) return;
+      if (patch.status !== undefined) {
+        card.dataset.status = patch.status;
+        if (patch.status === 'done') {
+          card.style.setProperty('--company-color', companyColor(company));
+        }
+      }
+      if (patch.statusLine !== undefined)
+        card.querySelector('.card-status').textContent = patch.statusLine;
+    }
+
+    // ─── SVG beam connecting lines ───────────────────────────────
+    function drawLines() {
+      const grid  = document.getElementById('agent-grid');
+      const svg   = document.getElementById('connecting-lines');
+      const cards = [...grid.querySelectorAll('.agent-card')];
+      svg.innerHTML = '';
+      if (cards.length < 2) return;
+      const wrapRect = grid.parentElement.getBoundingClientRect();
+      svg.setAttribute('width', wrapRect.width);
+      svg.setAttribute('height', wrapRect.height);
+      const NS = 'http://www.w3.org/2000/svg';
+
+      const defs = document.createElementNS(NS, 'defs');
+      const filt = document.createElementNS(NS, 'filter');
+      filt.setAttribute('id', 'beam-glow');
+      filt.setAttribute('x', '-50%'); filt.setAttribute('y', '-50%');
+      filt.setAttribute('width', '200%'); filt.setAttribute('height', '200%');
+      const blur = document.createElementNS(NS, 'feGaussianBlur');
+      blur.setAttribute('stdDeviation', '2.5'); blur.setAttribute('result', 'coloredBlur');
+      const merge = document.createElementNS(NS, 'feMerge');
+      ['coloredBlur','SourceGraphic'].forEach(ref => {
+        const n = document.createElementNS(NS, 'feMergeNode'); n.setAttribute('in', ref); merge.appendChild(n);
+      });
+      filt.appendChild(blur); filt.appendChild(merge); defs.appendChild(filt); svg.appendChild(defs);
+
+      const centers = cards.map(card => {
+        const r = card.getBoundingClientRect();
+        return { x: r.left - wrapRect.left + r.width/2, y: r.top - wrapRect.top + r.height/2 };
+      });
+
+      for (let i = 0; i < centers.length - 1; i++) {
+        const {x:x1,y:y1} = centers[i], {x:x2,y:y2} = centers[i+1];
+        const pathD = `M ${x1} ${y1} L ${x2} ${y2}`;
+        const s1 = cards[i].dataset.status, s2 = cards[i+1].dataset.status;
+        const live = (s1==='active'||s1==='done') && (s2==='active'||s2==='done');
+
+        const line = document.createElementNS(NS,'line');
+        line.setAttribute('x1',x1); line.setAttribute('y1',y1);
+        line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+        line.setAttribute('stroke', live ? 'rgba(59,130,246,0.22)' : 'rgba(59,130,246,0.07)');
+        line.setAttribute('stroke-width','1.5');
+        svg.appendChild(line);
+
+        if (!live) continue;
+        const beam = document.createElementNS(NS,'circle');
+        beam.setAttribute('r','5'); beam.setAttribute('fill','#3b82f6');
+        beam.setAttribute('opacity','0.9'); beam.setAttribute('filter','url(#beam-glow)');
+        const a1 = document.createElementNS(NS,'animateMotion');
+        a1.setAttribute('path',pathD); a1.setAttribute('dur',`${1.2+i*0.22}s`); a1.setAttribute('repeatCount','indefinite');
+        beam.appendChild(a1); svg.appendChild(beam);
+
+        const trail = document.createElementNS(NS,'circle');
+        trail.setAttribute('r','2.5'); trail.setAttribute('fill','#93c5fd'); trail.setAttribute('opacity','0.65');
+        const a2 = document.createElementNS(NS,'animateMotion');
+        a2.setAttribute('path',pathD); a2.setAttribute('dur',`${1.2+i*0.22}s`); a2.setAttribute('repeatCount','indefinite'); a2.setAttribute('begin','0.1s');
+        trail.appendChild(a2); svg.appendChild(trail);
+      }
+    }
+
+    // ─── Digest reveal ────────────────────────────────────────────
+    function revealDigest(html) {
+      digestHtml = html;  // kept for sendEmail()
+      document.getElementById('digest-section').classList.remove('hidden');
+      renderComparisonCard();
+      setTimeout(renderSources, 200);
+      setTimeout(renderCharts, 400);
+      setTimeout(renderHistoryCharts, 600);
+    }
+
+    // ─── Comparison card ─────────────────────────────────────────
+    function renderComparisonCard() {
+      const content = document.getElementById('digest-content');
+      content.innerHTML = '';
+      const grid = document.createElement('div');
+      grid.className = 'comparison-grid';
+
+      for (const [company, state] of agentStates) {
+        const s = state.structured;
+        if (!s) continue;
+        const color = companyColor(company);
+
+        const pricingItems = s.pricing_changes?.length
+          ? s.pricing_changes.slice(0, 5).map(c => {
+              const arrow = c.old_price != null && c.new_price != null
+                ? `$${c.old_price} → $${c.new_price}/mo`
+                : c.new_price != null ? `Now $${c.new_price}/mo` : (c.note || 'Change noted');
+              return `${c.tier || 'Plan'}: ${arrow}${c.date ? ' (' + c.date + ')' : ''}`;
+            })
+          : (s.pricing_tiers || []).slice(0, 5).map(t =>
+              `${t.name}: ${t.price === 0 ? 'Free' : '$' + t.price + '/mo'}`
+            );
+
+        const launchItems = (s.product_launches || []).slice(0, 5).map(l =>
+          `${l.name}${l.date ? ' (' + l.date + ')' : ''}${l.description ? ': ' + l.description : ''}`
+        );
+
+        const newsItems = (s.notable_news || []).slice(0, 5).map(n => n.headline || '');
+
+        // Stat pills from external APIs
+        const pills = [];
+        if (state.wikipedia?.founding_year) {
+          pills.push(`<span class="stat-pill">Founded: ${escapeHtml(state.wikipedia.founding_year)}</span>`);
+        }
+        if (state.wikipedia?.hq) {
+          pills.push(`<span class="stat-pill">HQ: ${escapeHtml(state.wikipedia.hq)}</span>`);
+        }
+        const raisedStr = state.structured?.funding?.total_raised || state.wikipedia?.funding_string;
+        if (raisedStr) {
+          pills.push(`<span class="stat-pill">Raised: ${escapeHtml(raisedStr)}</span>`);
+        }
+        if (state.app_store?.rating != null) {
+          pills.push(`<span class="stat-pill">${state.app_store.rating.toFixed(1)}/5 App Store</span>`);
+        }
+        const pillsHtml = pills.length
+          ? `<div class="compare-stat-pills">${pills.join('')}</div>`
+          : '';
+
+        const col = document.createElement('div');
+        col.className = 'company-compare-col';
+        col.innerHTML = `
+          <div class="compare-company-header" style="border-left-color:${color}">
+            <span class="compare-company-dot" style="background:${color}"></span>
+            <div>
+              <span class="compare-company-name">${escapeHtml(company)}</span>
+              <a class="compare-company-url" href="${companyUrl(company)}" target="_blank" rel="noopener noreferrer">${companyUrl(company).replace(/^https?:\/\//, '')}</a>
+            </div>
+          </div>
+          ${pillsHtml}
+          ${buildCompareSection('Pricing', pricingItems)}
+          ${buildCompareSection('Product Launches', launchItems)}
+          ${buildCompareSection('Notable News', newsItems)}`;
+        grid.appendChild(col);
+      }
+
+      if (grid.children.length === 0) {
+        content.innerHTML = '<p style="padding:24px;color:var(--muted-2);font-size:13px">No structured data available.</p>';
+      } else {
+        content.appendChild(grid);
+      }
+    }
+
+    function buildCompareSection(title, items) {
+      if (!items.length) return `
+        <div class="compare-section">
+          <div class="compare-section-title">${title}</div>
+          <p class="compare-empty">No data found</p>
+        </div>`;
+      return `
+        <div class="compare-section">
+          <div class="compare-section-title">${title}</div>
+          <ul class="compare-bullets">
+            ${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+          </ul>
+        </div>`;
+    }
+
+    // ─── Sources ─────────────────────────────────────────────────
+    function renderSources() {
+      const container = document.getElementById('sources-section');
+      container.innerHTML = '<h3>Sources</h3>';
+      let hasAny = false;
+      for (const [company, state] of agentStates) {
+        if (!state.sources?.length) continue;
+        hasAny = true;
+        const group = document.createElement('div');
+        group.className = 'source-group';
+        const chips = state.sources.map(url =>
+          `<a class="source-chip" href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`
+        ).join('');
+        group.innerHTML = `<div class="source-company-label">${escapeHtml(company)}</div><div class="source-chips-row">${chips}</div>`;
+        container.appendChild(group);
+      }
+      if (hasAny) container.classList.remove('hidden');
+    }
+
+    // ─── Charts ───────────────────────────────────────────────────
+    function destroyCharts() {
+      Object.values(chartInstances).forEach(c => c?.destroy());
+      chartInstances = {};
+    }
+
+    // ─── Historical Intelligence charts ──────────────────────────
+    function parseFundingM(str) {
+      if (!str) return null;
+      const m = String(str).match(/([\d,.]+)\s*([BMK]|billion|million)/i);
+      if (!m) return null;
+      const val = parseFloat(m[1].replace(/,/g, ''));
+      const unit = m[2][0].toUpperCase();
+      return unit === 'B' ? val * 1000 : unit === 'K' ? val / 1000 : val;
+    }
+
+    function renderFundingChart() {
+      const card = document.getElementById('chart-card-funding');
+
+      const allFundingData = [...agentStates.keys()].map(name => {
+        const f = agentStates.get(name).structured?.funding;
+        const wiki = agentStates.get(name).wikipedia;
+        const rounds = (f?.rounds || [])
+          .filter(r => r.year && r.amount_m != null)
+          .sort((a, b) => String(a.year).localeCompare(String(b.year)));
+        const raisedTotal = parseFundingM(f?.total_raised) ?? parseFundingM(wiki?.funding_string);
+        const roundsTotal = rounds.reduce((s, r) => s + r.amount_m, 0);
+        const confirmedTotal = raisedTotal ?? (roundsTotal > 0 ? roundsTotal : null);
+        const valuation = parseFundingM(f?.valuation);
+        const isValuation = confirmedTotal == null && valuation != null;
+        const total = confirmedTotal ?? valuation;
+        return { name, rounds, total, isValuation };
+      }).filter(c => c.rounds.length > 0 || c.total != null);
+
+      if (!allFundingData.length) { card.classList.add('hidden'); return false; }
+
+      const allHaveRounds = allFundingData.every(c => c.rounds.length > 0);
+      const totalRounds   = allFundingData.reduce((s, c) => s + c.rounds.length, 0);
+
+      // ── Step-line: every company has at least one round with an amount ──
+      if (allHaveRounds && totalRounds > 0) {
+        document.getElementById('chart-funding-subtitle').textContent =
+          'Cumulative venture funding raised over time';
+        const allYears = [...new Set(
+          allFundingData.flatMap(c => c.rounds.map(r => String(r.year)))
+        )].sort();
+
+        const datasets = allFundingData.map(({ name, rounds }) => {
+          const color = companyColor(name);
+          const byYear = {};
+          rounds.forEach(r => { byYear[String(r.year)] = r; });
+
+          // Build plain number array: null before first round, carry-forward after
+          let cum = 0;
+          let started = false;
+          const yData       = [];
+          const seriesMeta  = [];
+          const amountMeta  = [];
+          for (const yr of allYears) {
+            if (byYear[yr]) {
+              started = true;
+              cum = parseFloat((cum + byYear[yr].amount_m).toFixed(1));
+              yData.push(cum);
+              seriesMeta.push(byYear[yr].series || null);
+              amountMeta.push(byYear[yr].amount_m);
+            } else {
+              yData.push(started ? cum : null);
+              seriesMeta.push(null);
+              amountMeta.push(null);
+            }
+          }
+
+          return {
+            label: name,
+            data: yData,          // plain numbers / nulls — Chart.js 4 category axis requires this
+            borderColor: color,
+            backgroundColor: 'transparent',
+            borderWidth: 2.5,
+            pointRadius: yData.map((_, i) => seriesMeta[i] ? 6 : 0),
+            pointBackgroundColor: color,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5,
+            stepped: 'after',
+            fill: false,
+            spanGaps: false,
+            _seriesMeta: seriesMeta,
+            _amountMeta: amountMeta,
+          };
+        });
+
+        chartInstances.funding?.destroy();
+        chartInstances.funding = new Chart(
+          document.getElementById('chart-funding').getContext('2d'), {
+          type: 'line',
+          data: { labels: allYears, datasets },
+          options: {
+            responsive: true,
+            scales: {
+              x: { type: 'category', grid: { color: '#e8e8e8' }, border: { display: false } },
+              y: { beginAtZero: true, title: { display: true, text: '$M raised', color: '#64748b' },
+                   grid: { color: '#e8e8e8' }, border: { display: false } },
+            },
+            plugins: {
+              legend: { position: 'top', labels: { boxWidth: 12, padding: 16 } },
+              tooltip: { callbacks: { label: ctx => {
+                const series = ctx.dataset._seriesMeta?.[ctx.dataIndex];
+                const amount = ctx.dataset._amountMeta?.[ctx.dataIndex];
+                return series
+                  ? `${ctx.dataset.label}: ${series}${amount != null ? ': +$' + amount + 'M →' : ''} $${ctx.raw}M total`
+                  : `${ctx.dataset.label}: $${ctx.raw}M total`;
+              }}},
+              datalabels: {
+                display: (ctx) => !!(ctx.dataset._seriesMeta?.[ctx.dataIndex]),
+                formatter: (value, ctx) => {
+                  const s = ctx.dataset._seriesMeta?.[ctx.dataIndex] || '';
+                  const m = s.match(/Series\s+([A-Z0-9]+)/i);
+                  return m ? m[1] : s;
+                },
+                anchor: 'end', align: 'top',
+                color: '#800020', font: { size: 10, weight: '600' },
+              },
+            },
+          },
+        });
+        card.classList.remove('hidden');
+        return true;
+      }
+
+      // ── Horizontal bar: totals only (raised or valuation fallback) ──
+      const barData = allFundingData.filter(c => c.total != null);
+      if (!barData.length) { card.classList.add('hidden'); return false; }
+
+      const hasValuations = barData.some(c => c.isValuation);
+      document.getElementById('chart-funding-subtitle').textContent = hasValuations
+        ? 'Venture funding raised (* valuation shown where raise data unavailable)'
+        : 'Venture funding raised';
+
+      chartInstances.funding?.destroy();
+      chartInstances.funding = new Chart(
+        document.getElementById('chart-funding').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: barData.map(c => c.isValuation ? `${c.name}*` : c.name),
+          datasets: [{
+            data: barData.map(c => c.total),
+            backgroundColor: barData.map(c => hexToRgba(companyColor(c.name), c.isValuation ? 0.4 : 0.85)),
+            borderColor: barData.map(c => companyColor(c.name)),
+            borderWidth: 1.5,
+            borderRadius: 0,
+          }],
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => {
+              const d = barData[ctx.dataIndex];
+              return d.isValuation ? `Valuation: $${ctx.raw}M` : `$${ctx.raw}M raised`;
+            }}},
+            datalabels: { display: false },
+          },
+          scales: {
+            x: { beginAtZero: true, title: { display: true, text: '$M', color: '#64748b' },
+                 grid: { color: '#e8e8e8' }, border: { display: false } },
+            y: { grid: { color: '#e8e8e8' }, border: { display: false } },
+          },
+        },
+      });
+      card.classList.remove('hidden');
+      return true;
+    }
+
+    function renderHistoryCharts() {
+      if (typeof Chart === 'undefined') return;
+      let anyRendered = false;
+      anyRendered = renderTrendsChart()  || anyRendered;
+      anyRendered = renderFundingChart() || anyRendered;
+      if (anyRendered) {
+        document.getElementById('history-section').classList.remove('hidden');
+        applySingleChartFullWidth('history-section');
+      } else {
+        document.getElementById('history-section').classList.add('hidden');
+      }
+    }
+
+    function applySingleChartFullWidth(sectionId) {
+      const grid = document.querySelector(`#${sectionId} .charts-grid`);
+      if (!grid) return;
+      const visible = [...grid.querySelectorAll('.chart-card')].filter(el => !el.classList.contains('hidden'));
+      if (visible.length === 1 && !visible[0].classList.contains('chart-card-wide')) {
+        visible[0].classList.add('chart-card-wide');
+      }
+    }
+
+    function renderTrendsChart() {
+      const companies = [...agentStates.keys()].filter(c => agentStates.get(c).trends?.interest_over_time?.length);
+      const card = document.getElementById('chart-card-trends');
+      if (!companies.length) { card.classList.add('hidden'); return false; }
+
+      const datasets = companies.map(name => {
+        const color = companyColor(name);
+        const pts = agentStates.get(name).trends.interest_over_time;
+        return {
+          label: name,
+          data: pts.map(p => ({ x: Date.parse(p.date), y: p.value })),
+          borderColor: color,
+          backgroundColor: hexToRgba(color, 0.15),
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.35,
+          fill: true,
+        };
+      });
+
+      chartInstances.trends = new Chart(
+        document.getElementById('chart-trends').getContext('2d'), {
+        type: 'line',
+        data: { datasets },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              type: 'linear',
+              ticks: {
+                maxTicksLimit: 8,
+                callback: v => {
+                  const d = new Date(v);
+                  return d.toLocaleString('en', { month: 'short' }) + " '" + String(d.getFullYear()).slice(2);
+                },
+              },
+              grid: { color: '#e8e8e8' },
+              border: { display: false },
+            },
+            y: {
+              min: 0, max: 100,
+              title: { display: true, text: 'Interest (0–100)', color: '#64748b' },
+              grid: { color: '#e8e8e8' },
+              border: { display: false },
+            },
+          },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, padding: 16 } },
+            tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw.y}` } },
+            datalabels: { display: false },
+          },
+        },
+      });
+      return true;
+    }
+
+    function renderCharts() {
+      if (typeof Chart === 'undefined') return;
+      const hasStructured = [...agentStates.values()].some(s => s.structured);
+      if (!hasStructured) return;
+
+      document.getElementById('charts-section').classList.remove('hidden');
+
+      // Register datalabels plugin
+      if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
+
+      // Ken editorial defaults
+      Chart.defaults.color        = '#64748b';
+      Chart.defaults.borderColor  = '#e8e8e8';
+      Chart.defaults.font.family  = "'Inter', system-ui, sans-serif";
+      Chart.defaults.font.size    = 12;
+
+      // Disable datalabels globally — pricing chart opts in explicitly
+      if (!Chart.defaults.plugins.datalabels) Chart.defaults.plugins.datalabels = {};
+      Chart.defaults.plugins.datalabels.display = false;
+
+      renderPricingChart();
+      renderRadarChart();
+      applySingleChartFullWidth('charts-section');
+    }
+
+    function renderPricingChart() {
+      const companies = [...agentStates.keys()].filter(c => agentStates.get(c).structured?.pricing_tiers?.length);
+      const card = document.getElementById('chart-card-pricing');
+      if (!companies.length) { card.classList.add('hidden'); return; }
+
+      // Collect unique tier names sorted by average price across companies
+      const tierPriceAccum = new Map();
+      companies.forEach(name => {
+        agentStates.get(name).structured.pricing_tiers.forEach(t => {
+          if (!tierPriceAccum.has(t.name)) tierPriceAccum.set(t.name, []);
+          tierPriceAccum.get(t.name).push(t.price ?? 0);
+        });
+      });
+      const avg = arr => arr.reduce((s, v) => s + v, 0) / arr.length;
+      const tierLabels = [...tierPriceAccum.keys()].sort((a, b) =>
+        avg(tierPriceAccum.get(a)) - avg(tierPriceAccum.get(b))
+      );
+
+      // Map tier name → ↑/↓ if there's a confirmed price change
+      const tierChangeMap = new Map();
+      companies.forEach(name => {
+        (agentStates.get(name).structured.pricing_changes || []).forEach(c => {
+          if (c.tier && c.old_price != null && c.new_price != null) {
+            tierChangeMap.set(c.tier, c.new_price > c.old_price ? '↑' : '↓');
+          }
+        });
+      });
+
+      const datasets = companies.map(name => {
+        const tierPriceMap = {};
+        agentStates.get(name).structured.pricing_tiers.forEach(t => { tierPriceMap[t.name] = t.price ?? 0; });
+        const color = companyColor(name);
+        return {
+          label: name,
+          data: tierLabels.map(label => tierPriceMap[label] ?? null),
+          backgroundColor: hexToRgba(color, 0.90),
+          borderColor: 'transparent',
+          borderWidth: 0,
+          borderRadius: 0,
+        };
+      });
+
+      chartInstances.pricing = new Chart(
+        document.getElementById('chart-pricing').getContext('2d'), {
+        type: 'bar',
+        data: { labels: tierLabels, datasets },
+        options: {
+          responsive: true,
+          scales: {
+            x: { grid: { display: false }, border: { display: false } },
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: '$/month', color: '#64748b' },
+              grid: { color: '#e8e8e8' },
+              border: { display: false },
+            },
+          },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, padding: 16 } },
+            tooltip: {
+              callbacks: {
+                title: ctx => `${ctx[0].dataset.label} — ${tierLabels[ctx[0].dataIndex]}`,
+                label: ctx => ctx.raw != null ? `$${ctx.raw}/month` : 'No data',
+              },
+            },
+            datalabels: {
+              display: ctx => ctx.raw != null,
+              anchor: 'end', align: 'top', offset: 2,
+              font: { size: 10, weight: '600' },
+              formatter: (value, ctx) => {
+                const label = tierLabels[ctx.dataIndex];
+                const arrow = tierChangeMap.get(label) || '';
+                return (value === 0 ? 'Free' : `$${value}`) + (arrow ? ' ' + arrow : '');
+              },
+              color: (ctx) => {
+                const change = tierChangeMap.get(tierLabels[ctx.dataIndex]);
+                return change === '↑' ? '#dc2626' : change === '↓' ? '#16a34a' : '#64748b';
+              },
+            },
+          },
+        },
+      });
+    }
+
+    function renderRadarChart() {
+      const companies = [...agentStates.keys()].filter(c => agentStates.get(c).structured?.sentiment);
+      const card = document.getElementById('chart-card-radar');
+      if (!companies.length) { card.classList.add('hidden'); return; }
+
+      const datasets = companies.map(name => {
+        const s = agentStates.get(name).structured.sentiment;
+        const color = companyColor(name);
+        return {
+          label: name,
+          data: [
+            (s.pricing_aggressiveness ?? 0) + 2,
+            (s.ai_investment          ?? 0) + 2,
+            (s.growth_focus           ?? 0) + 2,
+            (s.enterprise_focus       ?? 0) + 2,
+          ],
+          backgroundColor: hexToRgba(color, 0.25),
+          borderColor: color,
+          borderWidth: 2.5,
+          pointBackgroundColor: color,
+          pointBorderColor: 'white',
+          pointBorderWidth: 1.5,
+          pointRadius: 4,
+        };
+      });
+
+      chartInstances.radar = new Chart(
+        document.getElementById('chart-radar').getContext('2d'), {
+        type: 'radar',
+        data: {
+          labels: ['Pricing\nAggression', 'AI\nInvestment', 'Growth\nFocus', 'Enterprise\nFocus'],
+          datasets,
+        },
+        options: {
+          responsive: true,
+          scales: {
+            r: {
+              min: 0, max: 4,
+              ticks: { stepSize: 1, display: true, color: '#94a3b8', font: { size: 10 } },
+              grid: { color: '#e8e8e8' },
+              pointLabels: { font: { size: 11 } },
+            },
+          },
+          plugins: {
+            legend: { position: 'top' },
+            datalabels: { display: false },
+          },
+        },
+      });
+    }
+
+    // ─── Copy & Email ─────────────────────────────────────────────
+    function copyDigest() {
+      const text = document.getElementById('digest-content').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      }).catch(() => {});
+    }
+
+    async function sendEmail() {
+      const btn = document.getElementById('email-btn');
+      btn.textContent = 'Sending…'; btn.disabled = true;
+      const sources_by_company = [...agentStates.entries()].map(([company, s]) => ({
+        company, summary: s.summary || '', sources: s.sources || [],
+      }));
+      try {
+        const res = await fetch('/email', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ html: digestHtml, companies: [...selectedCompanies], sources_by_company }),
+        });
+        if (res.ok) {
+          btn.textContent = 'Sent!';
+          setTimeout(() => { btn.textContent = 'Send Email'; btn.disabled = false; }, 3000);
+        } else {
+          throw new Error('Server returned ' + res.status);
+        }
+      } catch (err) {
+        btn.textContent = 'Failed'; btn.disabled = false;
+        showError('Email failed: ' + (err.message || 'unknown error'));
+      }
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────
+    function showError(msg) {
+      const el = document.getElementById('error-banner');
+      el.textContent = 'Error: ' + msg; el.classList.remove('hidden');
+    }
+    function escapeHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function escapeAttr(str) {
+      return String(str).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    init();
+  </script>
+</body>
+</html>
